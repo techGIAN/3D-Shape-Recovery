@@ -54,8 +54,6 @@ class DepthPredictionLoss(nn.Module):
     idx = torch.multinomial(num_samples=num, replacement=False)
     return pr_d[idx]
 
-  # get ground truth of the sample
-  # smp is a list, pr_d is a tensor, gt_d is a tensor
   '''
     Get the ground truth of a sample [smp]
     [smp] is a list
