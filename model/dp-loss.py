@@ -85,15 +85,14 @@ class DepthPredictionLoss(nn.Module):
   '''
   def multi_scale_gradient_loss(self, gt_d, d_bar):
     
-    K = 100 # I'm not sure. From the paper that implemented it, they said K is scale but idk what it means (eg. 0 to 100% scale?)
+    K = [2, 8, 32, 64]    # k values from the existing paper
     N = gt_d.size()
 
     msg = 0
-    for k in range(1, K+1):
-        gt_d.backward(gradient=torch.tensor([1., 1.]))
-        d_bar.backward(gradient=torch.tensor([1., 1.]))
-
-        msg += abs((gt_d[0].grad)**k - (d_bar[0].grad)**k) +  abs((gt_d[1].grad)**k - (d_bar[1].grad)**k)
+    gt_d.backward(gradient=torch.tensor([1., 1.]))
+    d_bar.backward(gradient=torch.tensor([1., 1.]))
+    for k in K:
+        msg += torch.abs((gt_d[0].grad)**k - (d_bar[0].grad)**k) +  torch.abs((gt_d[1].grad)**k - (d_bar[1].grad)**k)
 
     return msg/N
 
