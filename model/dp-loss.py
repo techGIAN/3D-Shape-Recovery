@@ -67,10 +67,11 @@ class DepthPredictionLoss(nn.Module):
     the sampling method is followed but enforced on surface normal space
     this improves global and local geometric relations
   '''
-  def surface_normal(self, sample_gt_d)
+  def surface_normal(self, sample_gt_d):
     # to-do
     # requires 3D point cloud
     # least squares fit
+    return
 
   '''
     Get the PWN loss given the ground truths and the normals
