@@ -6,6 +6,9 @@ import torchvision
 import numpy as np
 import random as rnd
 
+'''
+    Class contains the baseline loss functions to compare against the ILNR loss proposed by Yin et al.
+'''
 class BaselineLoss(nn.Module):
 
     '''
@@ -17,7 +20,7 @@ class BaselineLoss(nn.Module):
     
 
     '''
-        Scale Invariant Loss by Wang et al.
+        Scale Invariant Loss by Wang et al. (2019) - https://arxiv.org/pdf/1904.11112.pdf
     '''
     def scale_invariant_loss(self, pr_d, gt_d):
 
@@ -43,7 +46,7 @@ class BaselineLoss(nn.Module):
 
     
     '''
-        Scale Shift Invariant Loss by Ranftl et al.
+        Scale Shift Invariant Loss by Ranftl et al. (2020) - https://arxiv.org/pdf/1907.01341.pdf
     '''
     def scale_shift_invariant_loss(self, pr_d, gt_d):
 
