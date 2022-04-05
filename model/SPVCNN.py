@@ -158,6 +158,10 @@ class SPVCNN(nn.Module):
         return out
 
 if __name__ == '__main__':
-    model = SPVCNN()
+    model = SPVCNN(input_channel=3,
+                   num_classes=1,
+                   cr=1.0,
+                   pres=0.01,
+                   vres=0.01)
     print(model)
 
