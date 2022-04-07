@@ -1,4 +1,6 @@
 import numpy as np
+from torchsparse import SparseTensor
+from torchsparse.utils import sparse_collate_fn, sparse_quantize
 
 def init_image_coor(height, width, u0=None, v0=None):
     u0 = width / 2.0 if u0 is None else u0
@@ -89,8 +91,7 @@ def data_prepare(rgb, pred_depth):
     pred_depth_norm = pred_depth_norm / dmax
     proposed_scaled_focal = (rgb.shape[0] // 2 / np.tan((60 / 2.0) * np.pi / 180))
     # refine_focal(pred_depth_norm, proposed_scaled_focal, focal_model, u0=cam_u0, v0=cam_v0)
-    last_scale = 1
-    focal_tmp = np.copy(proposed_scaled_focal)
+
     # scale = refine_focal_one_step(depth, focal_tmp, model, u0, v0)
     u_u0, v_v0 = init_image_coor(pred_depth_norm.shape[0], pred_depth_norm.shape[1], u0=cam_u0, v0=cam_v0)
     pcd, mask_valid = depth_to_pcd(pred_depth_norm, u_u0, v_v0, f=proposed_scaled_focal, invalid_value=0)
