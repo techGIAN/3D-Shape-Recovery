@@ -100,3 +100,11 @@ def data_prepare(rgb, pred_depth):
     inputs = feed_dict['lidar'].cuda()
     return inputs
 
+
+if __name__ == '__main__':
+    from PIL import Image
+    from numpy import asarray
+
+    img = Image.open('../1.png')
+    ary = asarray(img)
+    print(data_prepare(ary))
