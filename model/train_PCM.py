@@ -63,12 +63,12 @@ def train_shift():
     train_dataset = DepthDataset(csv_file, img_folder)
     for k, feed_dict in enumerate(train_dataset):
         print(optimizer.param_groups[0]['lr'])
-        alpha = round(random.uniform(0.6, 1.25), 2)
+        delta = round(random.uniform(-0.25, 0.8),2)
         img = feed_dict['image']
-        input = data_prepare(img, img, 1, alpha)
+        input = data_prepare(img, img, 2, delta)
         with amp.autocast(enabled=True):
           outputs = model(input)
-          loss = abs(outputs - alpha)
+          loss = abs(outputs - delta)
         print(f'[step {k + 1}] loss = {loss.item()}')
         optimizer.zero_grad()
         scaler.scale(loss).backward()
@@ -77,7 +77,7 @@ def train_shift():
 
         if k % 1000 == 0:
           scheduler.step()
-    torch.save(model, "saved_pcm_focal")
+    torch.save(model, "saved_pcm_shift")
 
 if __name__ == '__main__':
     pass
