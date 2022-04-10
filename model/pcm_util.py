@@ -5,6 +5,7 @@ import random
 import math
 import torch
 
+
 def init_image_coor(height, width, u0=None, v0=None):
     u0 = width / 2.0 if u0 is None else u0
     v0 = height / 2.0 if v0 is None else v0
@@ -29,6 +30,31 @@ def depth_to_pcd(depth, u_u0, v_v0, f, invalid_value=0):
     pcd = np.stack([x, y, z], axis=2)
     return pcd, ~mask_invalid
 
+
+def pcd_to_sparsetensor(pcd, mask_valid, voxel_size=0.01, num_points=100000):
+    pcd_valid = pcd[mask_valid]
+    block_ = pcd_valid
+    block = np.zeros_like(block_)
+    block[:, :3] = block_[:, :3]
+
+    pc_ = np.round(block_[:, :3] / voxel_size)
+    pc_ -= pc_.min(0, keepdims=1)
+    feat_ = block
+
+    # transfer point cloud to voxels
+    inds = sparse_quantize(pc_,
+                           feat_,
+                           return_index=True,
+                           return_invs=False)
+    if len(inds) > num_points:
+        inds = np.random.choice(inds, num_points, replace=False)
+
+    pc = pc_[inds]
+    feat = feat_[inds]
+    lidar = SparseTensor(feat, pc)
+    feed_dict = [{'lidar': lidar}]
+    inputs = sparse_collate_fn(feed_dict)
+    return inputs
 
 def pcd_uv_to_sparsetensor(pcd, u_u0, v_v0, mask_valid, f= 500.0, voxel_size=0.01, mask_side=None, num_points=100000):
     if mask_side is not None:
@@ -61,10 +87,8 @@ def pcd_uv_to_sparsetensor(pcd, u_u0, v_v0, mask_valid, f= 500.0, voxel_size=0.0
     return inputs
 
 def refine_focal_one_step(depth, focal, model, u0, v0):
-    # reconstruct PCD from depth
     u_u0, v_v0 = init_image_coor(depth.shape[0], depth.shape[1], u0=u0, v0=v0)
     pcd, mask_valid = depth_to_pcd(depth, u_u0, v_v0, f=focal, invalid_value=0)
-    # input for the voxelnet
     feed_dict = pcd_uv_to_sparsetensor(pcd, u_u0, v_v0, mask_valid, f=focal, voxel_size=0.005, mask_side=None)
     inputs = feed_dict['lidar'].cuda()
 
@@ -120,20 +144,19 @@ def data_prepare(rgb, pred_depth, key, shift):
     # ocal_scale_1 = refine_focal(pred_depth_norm, proposed_scaled_focal, focal_model, u0=cam_u0, v0=cam_v0)
     # def refine_focal(depth, focal, model, u0, v0):
     if key == 1:
-        last_scale = 1
-        focal_tmp = np.copy(proposed_scaled_focal)
-        # scale = refine_focal_one_step(pred_depth_norm, focal_tmp, cam_u0, cam_v0)
-        # refine_focal_one_step(depth, focal, model, u0, v0)
+
         u_u0, v_v0 = init_image_coor(pred_depth_norm.shape[0], pred_depth_norm.shape[1], u0=cam_u0, v0=cam_v0)
-
         alpha = shift
-
-        pcd, mask_valid = depth_to_pcd(pred_depth_norm, u_u0, v_v0, f=focal_tmp*alpha, invalid_value=0)
-        # input for the voxelnet
-        feed_dict = pcd_uv_to_sparsetensor(pcd, u_u0, v_v0, mask_valid, f=focal_tmp, voxel_size=0.005, mask_side=None)
+        pcd, mask_valid = depth_to_pcd(pred_depth_norm, u_u0, v_v0, f=proposed_scaled_focal*alpha, invalid_value=0)
+        feed_dict = pcd_uv_to_sparsetensor(pcd, u_u0, v_v0, mask_valid, f=proposed_scaled_focal, voxel_size=0.005, mask_side=None)
         inputs = feed_dict['lidar'].cuda()
     elif key == 2:
-        pass
+        u_u0, v_v0 = init_image_coor(pred_depth_norm.shape[0], pred_depth_norm.shape[1], u0=cam_u0, v0=cam_v0)
+        delta = shift
+        pcd_wshift, mask_valid = depth_to_pcd(pred_depth_norm + delta, u_u0, v_v0, f=proposed_scaled_focal, invalid_value=0)
+        # input for the voxelnet
+        feed_dict = pcd_to_sparsetensor(pcd_wshift, mask_valid, voxel_size=0.01)
+        inputs = feed_dict['lidar'].cuda()
     else:
         pass
     return inputs

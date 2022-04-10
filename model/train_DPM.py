@@ -66,10 +66,11 @@ def train_depth():
 
         print('Image has loss ' + str(round(depth_loss, 4)))
 
-    optimizer.zero_grad()
-    scaler.scale(depth_loss).backward()
-    scaler.step(optimizer)
-    scaler.update()
+        optimizer.zero_grad()
+        scaler.scale(depth_loss).backward()
+        scaler.step(optimizer)
+        scaler.update()
+    torch.save(model, "saved_dpm")
 
 if __name__ == '__main__':
     pass
