@@ -40,26 +40,43 @@ class DepthDataset(Dataset):
 
 
 if __name__ == '__main__':
-    csv_file  = pd.read_csv('dataset.csv')
+    model = SPVCNN(input_channel=5,
+                   num_classes=1,
+                   cr=1.0,
+                   pres=0.01,
+                   vres=0.01
+                   )
+    model.eval()
+    model.cuda()
+
+    optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
+    scaler = amp.GradScaler(enabled=True)
+
+    csv_file = pd.read_csv('dataset.csv')
     BATCH_SIZE = 40
-    img_folder = '../dataset/depth_zbuffer/'
+    img_folder = '../depth_zbuffer/'
     transform = transforms.Compose([
         transforms.ToTensor()
     ])
-    train_dataset = DepthDataset(csv_file, img_folder, transform)
-    train_dataloader = DataLoader(
+
+    train_dataset = DepthDataset(csv_file, img_folder, None)
+
+    dataflow = DataLoader(
         train_dataset,
-        batch_size = BATCH_SIZE,
+        batch_size=BATCH_SIZE,
         shuffle=True
     )
+    for k, feed_dict in enumerate(train_dataset):
+        alpha = round(random.uniform(0.6, 1.25), 2)
+        img = feed_dict['image']
+        input = data_prepare(img, img, 1, alpha)
+        with amp.autocast(enabled=True):
+            outputs = model(input)
+            loss = abs(outputs - alpha)
 
+        print(f'[step {k + 1}] loss = {loss.item()}')
 
-    def imshow(inp, title=None):
-        """imshow for Tensor."""
-        inp = inp.numpy().transpose((1, 2, 0))
-        inp = np.clip(inp, 0, 1)
-        plt.imshow(inp)
-        plt.savefig('1.png')
-
-    images = next(iter(train_dataloader))
-    output = torchvision.utils.make_grid(images['image'])
+        optimizer.zero_grad()
+        scaler.scale(loss).backward()
+        scaler.step(optimizer)
+        scaler.update()
