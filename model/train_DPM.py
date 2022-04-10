@@ -5,8 +5,8 @@ from torch.utils.data import DataLoader, Dataset
 
 import pandas as pd
 import random
-from depth-modules import RelDepthModel
-from dp-loss import DepthPredictionLoss
+from depth_modules import RelDepthModel
+from dp_loss import DepthPredictionLoss
 from custom_depth_dataloader import CustomDepthDataset
 
 import os

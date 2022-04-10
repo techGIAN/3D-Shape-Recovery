@@ -1,4 +1,4 @@
-import network-auxiliary-path as net_aux
+import network_auxiliary_path as net_aux
 import torch
 import torch.nn as nn
 import importlib
