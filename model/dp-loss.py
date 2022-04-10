@@ -17,21 +17,21 @@ class DepthPredictionLoss(nn.Module):
     self.d_bar = None
     
     # Image-level Normalized Regression Loss
-    ilnr = self.image_level_normalized_regression_loss(pr_d, gt_d)
+    self.ilnr = self.image_level_normalized_regression_loss(pr_d, gt_d)
     
     # Paiwise Normal Loss
     sampled_points =  self.sample_pair_points(pr_d, 100000) # 100K sampled points
     sample_gt_d_A = self.get_gt_d_of_sample(sampled_points, pr_d, gt_d)
-    surface_normal_A = self.surface_normal(sample_gt_d_A)
+    surface_normal_A = self.surface_normal(sampled_points, sample_gt_d_A)
     sampled_points =  self.sample_pair_points(pr_d, 100000) # 100K sampled points
     sample_gt_d_B = self.get_gt_d_of_sample(sampled_points, pr_d, gt_d)
-    surface_normal_B = self.surface_normal(sample_gt_d_B)
-    pwn = self.pairwise_normal_loss(surface_normal_A, surface_normal_B, sample_gt_d_A, sample_gt_d_B)
+    surface_normal_B = self.surface_normal(sampled_points, sample_gt_d_B)
+    self.pwn = self.pairwise_normal_loss(surface_normal_A, surface_normal_B, sample_gt_d_A, sample_gt_d_B)
     
     # Multi-scale Gradient Loss
-    msg = self.multi_scale_gradient_loss(gt_d, self.d_bar) # not sure about this
+    self.msg = self.multi_scale_gradient_loss(gt_d, self.d_bar) # not sure about this
     
-    self.overall_loss = self.overall_loss(pwn, ilnr, msg)
+    self.overall_loss = self.overall_loss()
 
   '''
     Get the Image-level Normalized Regression Loss (ILNR) given the predicted and ground truth depths
@@ -67,11 +67,16 @@ class DepthPredictionLoss(nn.Module):
     the sampling method is followed but enforced on surface normal space
     this improves global and local geometric relations
   '''
-  def surface_normal(self, sample_gt_d):
+  def surface_normal(self, sample_pr_d, sample_gt_d):
     # to-do
     # requires 3D point cloud
     # least squares fit
-    return
+    gr_d = sample_gt_d.squeeze()
+    pe_d = sample_pr_d.squeeze()
+    filtered = (gr_d > 1e-8) & (pe_d > 1e-8)
+
+    a0, a1 = np.polyfit(pe_d[filtered], gr_d[filtered], deg=1) # linear least squares fit
+    return a0*pe_d + a1
 
   '''
     Get the PWN loss given the ground truths and the normals
@@ -100,6 +105,6 @@ class DepthPredictionLoss(nn.Module):
   '''
     Returns the overall loss.
   '''
-  def overall_loss(self, pwn, ilnr, msg):
+  def overall_loss(self):
     lambda_a, lambda_g = 1, 0.5     # given constants in the paper
     return self.pwn + lambda_a*self.ilnr + lambda_g*self.msg
