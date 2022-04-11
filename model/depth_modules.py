@@ -28,7 +28,7 @@ class DepthModel(nn.Module):
         arr = net_aux.__name__.split('.')
         last = arr[-1]
         encoder_name = last + '.' + encoder
-        mod = 'lib.' + last
+        mod = 'backbones.' + last
         mod_module = importlib.import_module(mod)
         self.encoder_module = getattr(mod, encoder)
         self.decoder_module = net_aux.Decoder()
