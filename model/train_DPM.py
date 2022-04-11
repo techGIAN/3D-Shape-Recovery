@@ -45,16 +45,16 @@ def train_depth():
         rgb_flip_50 = cv2.resize(rgb_image, (int(d2//2), int(d1//2))) # flip images horizontally 50% of the time
 
         new_img = rgb_flip_50
-        if len(new_img) == 2:
-            new_img = resized_copy[np.newaxis,:,:] # add a new dimension
+        if len(new_img.shape) == 2:
+            new_img = new_img[numpy.newaxis,:,:] # add a new dimension
         if new_img.shape[2] == 3:
             transform = transforms.Compose([transforms.ToTensor()])
             new_img = transform(new_img)
         else:
-            new_img = new_img.astype(np.float32)
-            new_img = torch.from_numpy(img)
+            new_img = new_img.astype(numpy.float32)
+            new_img = torch.from_numpy(new_img)
         
-        scaled_img = new_img[None,:,:,:]
+        scaled_img = new_img[None, :, :, :]
         
         with amp.autocast(enabled=True):
             pred_depth = model.predict_depth(scaled_img).cpu().numpy().squeeze()
