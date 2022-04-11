@@ -71,6 +71,3 @@ def train_depth():
         scaler.step(optimizer)
         scaler.update()
     torch.save(model, "saved_dpm")
-
-if __name__ == '__main__':
-    pass

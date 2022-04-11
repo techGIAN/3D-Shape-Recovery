@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.init as init
-from lib import Resnet, Resnext_torch
+from backbones import Resnet, Resnext_torch
 
 '''
     DepthNet that uses ResNet50 as its backbone
