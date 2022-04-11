@@ -45,7 +45,7 @@ def train_depth():
         rgb_flip_50 = cv2.resize(rgb_image, (int(d2//2), int(d1//2))) # flip images horizontally 50% of the time
 
         new_img = rgb_flip_50
-        if len(new_img) > 3:
+        if len(new_img) == 2:
             new_img = resized_copy[np.newaxis,:,:] # add a new dimension
         if new_img.shape[2] == 3:
             transform = transforms.Compose([transforms.ToTensor()])
