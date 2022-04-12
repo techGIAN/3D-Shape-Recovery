@@ -27,12 +27,12 @@ class DepthPredictionLoss(nn.Module):
         self.ilnr = self.image_level_normalized_regression_loss()
 
         # Paiwise Normal Loss
-        sampled_points =  self.sample_pair_points(100000) # 100K sampled points
-        sample_gt_d_A = self.get_gt_d_of_sample(sampled_points)
-        surface_normal_A = self.surface_normal(sampled_points, sample_gt_d_A)
-        sampled_points =  self.sample_pair_points(100000) # 100K sampled points
-        sample_gt_d_B = self.get_gt_d_of_sample(sampled_points)
-        surface_normal_B = self.surface_normal(sampled_points, sample_gt_d_B)
+        # sampled_points =  self.sample_pair_points(100000) # 100K sampled points
+        sample_pr_d_A, sample_gt_d_A = self.sample_pair_points(1000) # paper uses 100K sampled points but we reduce to 1000 for simplicity and save time
+        surface_normal_A = self.surface_normal(sample_pr_d_A, sample_gt_d_A)
+        # sampled_points =  self.sample_pair_points(100000) # 100K sampled points
+        sample_pr_d_B, sample_gt_d_B = self.sample_pair_points(1000) # paper uses 100K sampled points but we reduce to 1000 for simplicity and save time
+        surface_normal_B = self.surface_normal(sample_pr_d_B, sample_gt_d_B)
         self.pwn = self.pairwise_normal_loss(surface_normal_A, surface_normal_B, sample_gt_d_A, sample_gt_d_B)
 
         # Multi-scale Gradient Loss
@@ -51,20 +51,20 @@ class DepthPredictionLoss(nn.Module):
         return torch.mean(torch.abs(self.pr_d - self.d_bar) + torch.abs(torch.tanh(self.pr_d/100) - torch.tanh(self.d_bar/100)))
 
     '''
-        Sample [num] points from pr_d
+        Sample [num] points from pr_d and gt_d
         where [num] is the number of points that we wish to sample.
     '''
     def sample_pair_points(self, num):
-        idx = torch.multinomial(self.pr_d, num_samples=num, replacement=True)
-        return self.pr_d[idx]
+        idx = torch.multinomial(self.pr_d.flatten(), num_samples=num, replacement=True)
+        return self.pr_d.flatten()[idx], self.gt_d.flatten()[idx]
 
-    '''
-        Get the ground truth of a sample [smp]
-        [smp] is a list
-    '''
-    def get_gt_d_of_sample(self, smp):
-        pos = [(self.pr_d == x).nonzero().item() for x in smp]   # get the pos list of the samples from  the pr_d
-        return torch.stack([self.gt_d[x] for x in pos])
+    # '''
+    #     Get the ground truth of a sample [smp]
+    #     [smp] is a list
+    # '''
+    # def get_gt_d_of_sample(self, smp):
+    #     pos = [(self.pr_d == x).nonzero().item() for x in smp]   # get the pos list of the samples from  the pr_d
+    #     return torch.stack([self.gt_d[x] for x in pos])
 
     '''
         Follows Xian et al's Structure-guided rank loss, which can imporve edge sharpness
