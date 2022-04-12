@@ -85,21 +85,28 @@ class DepthPredictionLoss(nn.Module):
     def pairwise_normal_loss(self, n_A, n_B, gt_A, gt_B):
         pwn = torch.mean(torch.abs(n_A*n_B - gt_A*gt_B))
         return pwn
-
-    '''
-        Assume gt_d and d_bar are requires_grad=True.
+   '''
+        Assume pr_d and d_bar are requires_grad=True.
         Compute MSG
     '''
     def multi_scale_gradient_loss(self):
 
-        K = [2, 8, 32, 64]    # k values from the existing paper
-        N = self.gt_d.size()
+        N = self.pr_d.flatten().size()[0]
 
         msg = 0
-        self.gt_d.backward(gradient=torch.tensor([1., 1.]))
-        self.d_bar.backward(gradient=torch.tensor([1., 1.]))
-        for k in K:
-            msg += torch.abs((self.gt_d[0].grad)**k - (self.d_bar[0].grad)**k) +  torch.abs((self.gt_d[1].grad)**k - (self.d_bar[1].grad)**k)
+        pred_d = self.pr_d.detach().clone()
+        depth_b = self.d_bar.detach().clone()
+
+        pred_d.requires_grad_()  
+        pred_d.retain_grad()
+        pred_d.backward(gradient=torch.ones(pred_d.size()))
+
+        depth_b.requires_grad_() 
+        depth_b.retain_grad()
+        depth_b.backward(gradient=torch.ones(depth_b.size()))
+
+        for k in [2, 8, 32, 64]:    # k values from the existing paper
+            msg += torch.abs((pred_d.grad)**k - (depth_b.grad)**k)).sum()[0]
 
         return msg/N
 
