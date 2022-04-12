@@ -17,7 +17,7 @@ class RelDepthModel(nn.Module):
     def predict_depth(self, rgb_image):
         with torch.no_grad():
             input_img = rgb_image.cuda()
-            depth = self.depth_model(input)
+            depth = self.depth_model(input_img)
             pred_depth = (depth-depth.min()) + 0.01 # avoids zero depth prediction
             return pred_depth
 
@@ -28,9 +28,8 @@ class DepthModel(nn.Module):
         arr = net_aux.__name__.split('.')
         last = arr[-1]
         encoder_name = last + '.' + encoder
-        mod = 'backbones.' + last
-        mod_module = importlib.import_module(mod)
-        self.encoder_module = getattr(mod, encoder)
+        mod = last
+        self.encoder_module = net_aux.resnet50_stride32()
         self.decoder_module = net_aux.Decoder()
 
     def forward(self, x):
