@@ -6,10 +6,7 @@ import math
 import torch
 
 
-def init_image_coor(height, width, u0=None, v0=None):
-    u0 = width / 2.0 if u0 is None else u0
-    v0 = height / 2.0 if v0 is None else v0
-
+def init_image_coor(height, width, u0, v0):
     x_row = np.arange(0, width)
     x = np.tile(x_row, (height, 1))
     x = x.astype(np.float32)
@@ -141,10 +138,7 @@ def data_prepare(rgb, pred_depth, key, shift):
     # proposed focal length, FOV is 60', Note that 60~80' are acceptable.
     proposed_scaled_focal = (rgb.shape[0] // 2 / np.tan((60/2.0)*np.pi/180))
 
-    # ocal_scale_1 = refine_focal(pred_depth_norm, proposed_scaled_focal, focal_model, u0=cam_u0, v0=cam_v0)
-    # def refine_focal(depth, focal, model, u0, v0):
     if key == 1:
-
         u_u0, v_v0 = init_image_coor(pred_depth_norm.shape[0], pred_depth_norm.shape[1], u0=cam_u0, v0=cam_v0)
         alpha = shift
         pcd, mask_valid = depth_to_pcd(pred_depth_norm, u_u0, v_v0, f=proposed_scaled_focal*alpha, invalid_value=0)
