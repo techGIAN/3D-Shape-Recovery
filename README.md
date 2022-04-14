@@ -21,9 +21,9 @@ These are datasets that we could have used in addition to Taskonomy for training
 ### Testing Datasets
 
 <ul>
-  <li> <b>Youtube3D</b>: available <a href="http://www-personal.umich.edu/~wfchen/depth-in-the-wild/">here</a> </li>
   <li> <b>KITTI</b>: available <a href="https://paperswithcode.com/dataset/kitti">here</a>. One of the more popular benchmark datasets for mobile robotics and autonomous driving. </li>
-  <li> <b>DIODE</b>: available <a href="https://diode-dataset.org/">here</a> </li>
+  <li> <b>DIODE</b>: available <a href="https://diode-dataset.org/">here</a>. High-resolution, accurate, dense RGB colored images. </li>
+   <li> <b>Youtube3D</b>: available <a href="http://www-personal.umich.edu/~wfchen/depth-in-the-wild/">here</a> (Didn't have time to use) </li>
 </ul>
 
 ## Methodology
