@@ -3,6 +3,10 @@ from torchsparse.point_tensor import PointTensor
 from torchsparse.utils.kernel_region import *
 from torchsparse.utils.helpers import *
 
+'''
+From https://github.com/mit-han-lab/spvnas by Tang et al.
+'''
+
 
 __all__ = ['initial_voxelize', 'point_to_voxel', 'voxel_to_point']
 

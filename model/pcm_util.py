@@ -1,12 +1,11 @@
 import numpy as np
 from torchsparse import SparseTensor
 from torchsparse.utils import sparse_collate_fn, sparse_quantize
-import random
-import math
-import torch
 
-
-def init_image_coor(height, width, u0, v0):
+'''
+Some functions borrowed ideas from https://github.com/aim-uofa/AdelaiDepth/tree/main/LeReS
+'''
+def unprojection(height, width, u0, v0):
     x_row = np.arange(0, width)
     x = np.tile(x_row, (height, 1))
     x = x.astype(np.float32)
@@ -18,8 +17,8 @@ def init_image_coor(height, width, u0, v0):
     v_v0 = y - v0
     return u_u0, v_v0
 
-def depth_to_pcd(depth, u_u0, v_v0, f, invalid_value=0):
-    mask_invalid = depth <= invalid_value
+def depth_to_pcd(depth, u_u0, v_v0, f):
+    mask_invalid = depth <= 0
     depth[mask_invalid] = 0.0
     x = u_u0 / f * depth
     y = v_v0 / f * depth
@@ -83,74 +82,41 @@ def pcd_uv_to_sparsetensor(pcd, u_u0, v_v0, mask_valid, f= 500.0, voxel_size=0.0
     inputs = sparse_collate_fn(feed_dict)
     return inputs
 
-def refine_focal_one_step(depth, focal, model, u0, v0):
-    u_u0, v_v0 = init_image_coor(depth.shape[0], depth.shape[1], u0=u0, v0=v0)
-    pcd, mask_valid = depth_to_pcd(depth, u_u0, v_v0, f=focal, invalid_value=0)
-    feed_dict = pcd_uv_to_sparsetensor(pcd, u_u0, v_v0, mask_valid, f=focal, voxel_size=0.005, mask_side=None)
-    inputs = feed_dict['lidar'].cuda()
 
-    outputs = model(inputs)
-    return outputs
-
-def refine_shift_one_step(depth_wshift, model, focal, u0, v0):
-    # reconstruct PCD from depth
-    u_u0, v_v0 = init_image_coor(depth_wshift.shape[0], depth_wshift.shape[1], u0=u0, v0=v0)
-    pcd_wshift, mask_valid = depth_to_pcd(depth_wshift, u_u0, v_v0, f=focal, invalid_value=0)
-    # input for the voxelnet
-    feed_dict = pcd_to_sparsetensor(pcd_wshift, mask_valid, voxel_size=0.01)
-    inputs = feed_dict['lidar'].cuda()
-
-    outputs = model(inputs)
-    return outputs
-
-def refine_focal(depth, focal, model, u0, v0):
-    last_scale = 1
-    focal_tmp = np.copy(focal)
-    for i in range(1):
-        scale = refine_focal_one_step(depth, focal_tmp, model, u0, v0)
-        focal_tmp = focal_tmp / scale.item()
-        last_scale = last_scale * scale
-    return torch.tensor([[last_scale]])
-
-def refine_shift(depth_wshift, model, focal, u0, v0):
-    depth_wshift_tmp = np.copy(depth_wshift)
-    last_shift = 0
-    for i in range(1):
-        shift = refine_shift_one_step(depth_wshift_tmp, model, focal, u0, v0)
-        shift = shift if shift.item() < 0.7 else torch.tensor([[0.7]])
-        depth_wshift_tmp -= shift.item()
-        last_shift += shift.item()
-    return torch.tensor([[last_shift]])
-
-def data_prepare(rgb, pred_depth, key, shift):
+def data_prepare(depth, key, shift):
     '''
     key = 1: focal
-    key = 2: depth
-    key = 0: ground_truth
+    key = else: depth
     '''
-    cam_u0 = rgb.shape[1] / 2.0
-    cam_v0 = rgb.shape[0] / 2.0
-    pred_depth_norm = pred_depth - pred_depth.min() + 0.5
+    # optical centre
+    u0 = depth.shape[1] / 2.0
+    v0 = depth.shape[0] / 2.0
+    upper = depth - depth.min()
+    lower = depth.max()-depth.min()
+    d_norm = upper / lower
 
-    dmax = np.percentile(pred_depth_norm, 98)
-    pred_depth_norm = pred_depth_norm / dmax
-
-    # proposed focal length, FOV is 60', Note that 60~80' are acceptable.
-    proposed_scaled_focal = (rgb.shape[0] // 2 / np.tan((60/2.0)*np.pi/180))
+    pov = (depth.shape[0] // 2 / np.tan((60/2.0)*np.pi/180))
 
     if key == 1:
-        u_u0, v_v0 = init_image_coor(pred_depth_norm.shape[0], pred_depth_norm.shape[1], u0=cam_u0, v0=cam_v0)
+        u_u0, v_v0 = unprojection(d_norm.shape[0], d_norm.shape[1], u0=u0, v0=v0)
         alpha = shift
-        pcd, mask_valid = depth_to_pcd(pred_depth_norm, u_u0, v_v0, f=proposed_scaled_focal*alpha, invalid_value=0)
-        feed_dict = pcd_uv_to_sparsetensor(pcd, u_u0, v_v0, mask_valid, f=proposed_scaled_focal, voxel_size=0.005, mask_side=None)
+        pcd, mask_valid = depth_to_pcd(d_norm, u_u0, v_v0, f=pov*alpha)
+        feed_dict = pcd_uv_to_sparsetensor(pcd, u_u0, v_v0, mask_valid, f=os.POSIX_FADV_DONTNEED, voxel_size=0.005, mask_side=None)
         inputs = feed_dict['lidar'].cuda()
-    elif key == 2:
-        u_u0, v_v0 = init_image_coor(pred_depth_norm.shape[0], pred_depth_norm.shape[1], u0=cam_u0, v0=cam_v0)
+    else:
+        u_u0, v_v0 = unprojection(d_norm.shape[0], d_norm.shape[1], u0=u0, v0=v0)
         delta = shift
-        pcd_wshift, mask_valid = depth_to_pcd(pred_depth_norm + delta, u_u0, v_v0, f=proposed_scaled_focal, invalid_value=0)
+        pcd_wshift, mask_valid = depth_to_pcd(d_norm + delta, u_u0, v_v0, f=pov)
         # input for the voxelnet
         feed_dict = pcd_to_sparsetensor(pcd_wshift, mask_valid, voxel_size=0.01)
         inputs = feed_dict['lidar'].cuda()
-    else:
-        pass
     return inputs
+
+
+# import cv2
+# path = '../../depth_zbuffer/point_0_view_0_domain_depth_zbuffer.png'
+# img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+#
+# data_prepare(img, img, 2, 0).C
+
+

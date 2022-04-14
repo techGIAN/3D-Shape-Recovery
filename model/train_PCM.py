@@ -29,7 +29,7 @@ def train_focal():
         print(optimizer.param_groups[0]['lr'])
         alpha = round(random.uniform(0.6, 1.25), 2)
         img = feed_dict['image']
-        input = data_prepare(img, img, 1, alpha)
+        input = data_prepare(img, 1, alpha)
         with amp.autocast(enabled=True):
           outputs = model(input)
           loss = abs(outputs - alpha)
@@ -65,7 +65,7 @@ def train_shift():
         print(optimizer.param_groups[0]['lr'])
         delta = round(random.uniform(-0.25, 0.8),2)
         img = feed_dict['image']
-        input = data_prepare(img, img, 2, delta)
+        input = data_prepare(img, 2, delta)
         with amp.autocast(enabled=True):
           outputs = model(input)
           loss = abs(outputs - delta)
