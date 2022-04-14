@@ -53,7 +53,7 @@ Depth prediction losses of the models on the KITTI dataset. In bold is the perfo
 ## Project Materials
 
 **Video and Presentation Slides:** https://tinyurl.com/3d-shape-recovery-video <br>
-**Paper Report:**
+**Paper Report:** https://tinyurl.com/proj-report-3d-shape-recovery
 
 ## References
 
