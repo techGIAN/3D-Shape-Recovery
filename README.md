@@ -19,4 +19,6 @@ Implementation from scratch of Learning 3D Shape Recovery using Point Cloud Modu
 
 <ul>
   <li> <b>Youtube3D</b>: available <a href="http://www-personal.umich.edu/~wfchen/depth-in-the-wild/">here</a> </li>
+  <li> <b>KITTI</b>: available <a href="https://paperswithcode.com/dataset/kitti">here</a> </li>
+  <li> <b>DIODE</b>: available <a href="https://diode-dataset.org/">here</a> </li>
 </ul>
