@@ -1,3 +1,6 @@
+'''
+   Some functions borrowed ideas from https://github.com/aim-uofa/AdelaiDepth/tree/main/LeReS
+'''
 import network_auxiliary_path as net_aux
 import torch
 import torch.nn as nn
