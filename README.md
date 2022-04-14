@@ -3,11 +3,11 @@ Implementation from scratch of Learning 3D Shape Recovery using Point Cloud Modu
 
 ### Datasets
 
-<ul>
-  <li> <b>Taskonomy</b>: available <a href="https://github.com/StanfordVL/taskonomy/tree/master/data">here</a>. This is the main dataset that was used on to train PCM and DPM modules. It is comprised of large and high-quality images of varied indoor scenes. It is 11.16 TB in size but we are only using a subset (RGB dataset for DPM, 512x512 resolution; depth_zbuffer dataset for PCM, z-buffer depth images) </li>
-</ul>
+<b>Taskonomy</b>: available <a href="https://github.com/StanfordVL/taskonomy/tree/master/data">here</a>. This is the main dataset that was used on to train PCM and DPM modules. It is comprised of large and high-quality images of varied indoor scenes. It is 11.16 TB in size but we are only using a subset (RGB dataset for DPM, 512x512 resolution; depth_zbuffer dataset for PCM, z-buffer depth images) 
 
 #### Other Potential Datasets
+
+These are datasets that we could have used in addition to Taskonomy for training (but we hadn't due to time constraints and extremely large data):
 
 <ul>
    <li> <b>ScanNet</b>: available <a href="https://github.com/ScanNet/ScanNet">here</a> </li>
