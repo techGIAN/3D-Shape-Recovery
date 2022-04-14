@@ -32,6 +32,23 @@ These are datasets that we could have used in addition to Taskonomy for training
 
 The framework consists mainly of two main modules: the Point Cloud Module (PCM) and the Depth Predcition Module (DPM). These modules are trained separately; however, during inference time, the output of the DPM becomes the input of the PCM.
 
+## Reproduced Experimental Results
+
+| Dataset: DIODE  | Yin et al. (2020) |  Ours  |
+| --------------- | ----------------- | ------ |
+| Baseline        |        46.8       |  120.3 |
+| After shift     |      **36.9**     | **94.26** |
+Results from shift recovery experiment. This demonstrates that the depth shift error was reduced from the grond truth depth.
+
+|       Model      |  Backbone  |  Loss  |
+| ---------------- | ---------- | ------ |
+| Yin et al.       |  ResNet50  |  **14.3** |
+| Yin et al.       | ResNeXt101 |  14.9 |
+| Our Reproduction |  ResNet50  | 176.8 |
+| Our Reproduction | ResNeXt101 | 177.2 |
+Depth prediction losses of the models on the KITTI dataset. In bold is the performance loss from the best model 
+
+
 ## References
 
 <ul>
