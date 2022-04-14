@@ -38,6 +38,7 @@ The framework consists mainly of two main modules: the Point Cloud Module (PCM) 
 | --------------- | ----------------- | ------ |
 | Baseline        |        46.8       |  120.3 |
 | After shift     |      **36.9**     | **94.26** |
+
 Results from shift recovery experiment. This demonstrates that the depth shift error was reduced from the grond truth depth.
 
 |       Model      |  Backbone  |  Loss  |
@@ -46,6 +47,7 @@ Results from shift recovery experiment. This demonstrates that the depth shift e
 | Yin et al.       | ResNeXt101 |  14.9 |
 | Our Reproduction |  ResNet50  | 176.8 |
 | Our Reproduction | ResNeXt101 | 177.2 |
+
 Depth prediction losses of the models on the KITTI dataset. In bold is the performance loss from the best model 
 
 
