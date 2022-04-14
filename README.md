@@ -50,6 +50,10 @@ Results from shift recovery experiment. This demonstrates that the depth shift e
 
 Depth prediction losses of the models on the KITTI dataset. In bold is the performance loss from the best model 
 
+## Project Materials
+
+**Video and Presentation Slides:** https://tinyurl.com/3d-shape-recovery-video
+**Paper Report:**
 
 ## References
 
