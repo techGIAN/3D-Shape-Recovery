@@ -14,3 +14,9 @@ Implementation from scratch of Learning 3D Shape Recovery using Point Cloud Modu
   <li> <b>DIML</b>: <a href="http://diml.yonsei.ac.kr/DIML_rgbd_dataset/">here</a>, but link is broken </li>
   <li> <b>Ken Burns</b>: available <a href="https://github.com/sniklaus/3d-ken-burns">here</a> </li>
 </ul>
+
+#### Testing Datasets
+
+<ul>
+  <li> <b>Youtube3D</b>: available <a href="http://www-personal.umich.edu/~wfchen/depth-in-the-wild/">here</a> </li>
+</ul>
