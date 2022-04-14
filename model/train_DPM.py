@@ -26,7 +26,6 @@ class CustomDepthDataset(Dataset):
 
     def __getitem__(self, index):
         image = cv2.imread(self.img_folder + self.img_names.iloc[index])
-        # image = self.transform(image)
         sample = {'image': image}
         return sample
 
@@ -42,7 +41,6 @@ def train_depth():
     os.makedirs(img_dir_out, exist_ok=True)
 
     optimizer = torch.optim.SGD(model.parameters(), lr=0.02)
-    # scaler = amp.GradScaler(enabled=True)
     scheduler = StepLR(optimizer, step_size=1, gamma=0.1)
 
     transform = transforms.Compose([
@@ -50,7 +48,6 @@ def train_depth():
     ])
 
     img_rgb_dataset = CustomDepthDataset(img_csv, img_dir, transform)
-    # data_set = DataLoader(img_rgb_dataset, batch_size=40, shuffle=True)
 
     # for ground truths
     img_gt_dir = '../../depth_zbuffer/'
@@ -66,12 +63,9 @@ def train_depth():
 
         print('Processing Image ' + str(k))
         rgb_image = d_p['image']
-        # rgb_image = cv2.imread(img)
         d1 = rgb_image.shape[0]
         d2 = rgb_image.shape[1]
         rgb_copy = rgb_image[:, :, ::-1].copy()
-        # rgb_copy = torch.from_numpy(rgb_image.numpy()[:,:,::-1].copy())
-        # rgb_copy = rgb_copy.numpy()
         resized_copy = cv2.resize(rgb_copy, (448, 448))  # resize images to 448 x 448
         rgb_flip_50 = cv2.resize(rgb_image, (int(d2 // 2), int(d1 // 2)))  # flip images horizontally 50% of the time
 
@@ -98,7 +92,6 @@ def train_depth():
         with amp.autocast(enabled=True):
             pred_depth = model.predict_depth(scaled_img).cpu().numpy().squeeze()
 
-            # gt_depth = None # where to find from data?
             gray_transform = transforms.Compose([transforms.ToPILImage(),
                                                  transforms.Grayscale(),
                                                  transforms.ToTensor()])
@@ -117,7 +110,3 @@ def train_depth():
         if k % 1000 == 0:
             scheduler.step()
     torch.save(model, "saved_dpm")
-
-    # scaler.scale(loss).backward()
-    # scaler.step(optimizer)
-    # scaler.update()
